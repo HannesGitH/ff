@@ -64,10 +64,11 @@ class FFVmAndControllerProvider<
     Controller extends FFController<Watched, FFState>
   >(BuildContext context) {
     final result = maybeOf<Watched, FFState, ViewModel, Controller>(context);
-    if (result == null)
+    if (result == null) {
       throw Exception(
         'No FFVmAndControllerProvider<$ViewModel, $Controller> found in context',
       );
+    }
     return result;
   }
 
@@ -167,10 +168,10 @@ class FFShimmerMan extends StatefulWidget {
   final Widget child;
 
   @override
-  _FFShimmerManState createState() => _FFShimmerManState();
+  FFShimmerManState createState() => FFShimmerManState();
 }
 
-class _FFShimmerManState extends State<FFShimmerMan> {
+class FFShimmerManState extends State<FFShimmerMan> {
   final Set<Symbol> _shimmeringProps = {};
 
   bool get isShimmering => _shimmeringProps.isNotEmpty;

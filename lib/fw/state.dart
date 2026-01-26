@@ -3,8 +3,8 @@ part of 'fw.dart';
 enum FFPropLoadingStateType { loading, loaded }
 
 extension ToFFLoadedObjectWrapperHelper<T> on T {
-  FFPropWithMetadata<T> get FFLoaded => FFPropWithMetadata.loaded(this);
-  FFPropWithMetadata<T> get FFLoading => FFPropWithMetadata.loading(this);
+  FFPropWithMetadata<T> get ffLoaded => FFPropWithMetadata.loaded(this);
+  FFPropWithMetadata<T> get ffLoading => FFPropWithMetadata.loading(this);
 }
 
 class FFPropWithMetadata<Prop> {
@@ -94,17 +94,17 @@ class FFDynamicallySizedPropsUnwatched<T> implements Map<String, T> {
   }
 
   void loaded(String key, T value) {
-    inner[key] = value.FFLoaded;
+    inner[key] = value.ffLoaded;
   }
 
   void loading(String key, T value) {
-    inner[key] = value.FFLoading;
+    inner[key] = value.ffLoading;
   }
 
   @override
   void operator []=(String key, T value) {
     final old = inner[key];
-    inner[key] = old?.copyWith(prop: value) ?? value.FFLoaded;
+    inner[key] = old?.copyWith(prop: value) ?? value.ffLoaded;
   }
 
   @override
@@ -175,7 +175,7 @@ class FFDynamicallySizedPropsUnwatched<T> implements Map<String, T> {
 
   @override
   T putIfAbsent(String key, T Function() ifAbsent) {
-    return inner.putIfAbsent(key, () => ifAbsent().FFLoaded).prop;
+    return inner.putIfAbsent(key, () => ifAbsent().ffLoaded).prop;
   }
 
   @override
@@ -190,27 +190,27 @@ class FFDynamicallySizedPropsUnwatched<T> implements Map<String, T> {
 
   @override
   T update(String key, T Function(T value) update, {T Function()? ifAbsent}) {
-    return inner.update(key, (value) => update(value.prop).FFLoaded).prop;
+    return inner.update(key, (value) => update(value.prop).ffLoaded).prop;
   }
 
   @override
   void updateAll(T Function(String key, T value) update) {
-    inner.updateAll((key, value) => update(key, value.prop).FFLoaded);
+    inner.updateAll((key, value) => update(key, value.prop).ffLoaded);
   }
 
   @override
   Iterable<T> get values => inner.values.map((value) => value.prop);
 
-  Map<String, FFPropWithMetadata<T>> get FFAllLoaded {
+  Map<String, FFPropWithMetadata<T>> get ffAllLoaded {
     for (final key in keys) {
-      inner[key] = this[key]!.FFLoaded;
+      inner[key] = this[key]!.ffLoaded;
     }
     return inner;
   }
 
-  Map<String, FFPropWithMetadata<T>> get FFAllLoading {
+  Map<String, FFPropWithMetadata<T>> get ffAllLoading {
     for (final key in keys) {
-      inner[key] = this[key]!.FFLoading;
+      inner[key] = this[key]!.ffLoading;
     }
     return inner;
   }
@@ -231,6 +231,9 @@ class FFDynamicallySizedProps<T> implements Map<String, T> {
 
   @override
   operator ==(Object other) => inner == other;
+
+  @override
+  int get hashCode => inner.hashCode;
 
   @override
   int get length => inner.length;
@@ -316,16 +319,18 @@ class FFDynamicallySizedProps<T> implements Map<String, T> {
 }
 
 extension FFPropWithMetadataMapHelpers<T> on Map<String, T> {
-  Map<String, FFPropWithMetadata<T>> get FFAllLoaded {
-    if (this case FFDynamicallySizedPropsUnwatched<T> wrapped)
-      return wrapped.FFAllLoaded;
-    return map((key, value) => MapEntry(key, value.FFLoaded));
+  Map<String, FFPropWithMetadata<T>> get ffAllLoaded {
+    if (this case FFDynamicallySizedPropsUnwatched<T> wrapped) {
+      return wrapped.ffAllLoaded;
+    }
+    return map((key, value) => MapEntry(key, value.ffLoaded));
   }
 
-  Map<String, FFPropWithMetadata<T>> get FFAllLoading {
-    if (this case FFDynamicallySizedPropsUnwatched<T> wrapped)
-      return wrapped.FFAllLoading;
-    return map((key, value) => MapEntry(key, value.FFLoading));
+  Map<String, FFPropWithMetadata<T>> get ffAllLoading {
+    if (this case FFDynamicallySizedPropsUnwatched<T> wrapped) {
+      return wrapped.ffAllLoading;
+    }
+    return map((key, value) => MapEntry(key, value.ffLoading));
   }
 
   void loaded(String key, T value) {
@@ -344,9 +349,11 @@ extension FFPropWithMetadataMapHelpers<T> on Map<String, T> {
 class FFNever {
   @override
   bool operator ==(Object other) => false;
+  @override
+  int get hashCode => 0;
 }
 
-mixin FFFatchHelper<FFState extends GetProps> {
+mixin FFWatchHelper<FFState extends GetProps> {
   BuildContext get context;
 
   T read<T>(Symbol prop, FFPropWithMetadata<T> data) {

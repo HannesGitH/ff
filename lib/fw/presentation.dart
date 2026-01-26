@@ -23,8 +23,9 @@ class FFPresentationProvider extends InheritedWidget {
 
   static FFPresentationProvider of(BuildContext context) {
     final result = maybeOf(context);
-    if (result == null)
+    if (result == null) {
       throw Exception('No FFPresentationProvider found in context');
+    }
     return result;
   }
 }

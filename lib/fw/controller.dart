@@ -1,15 +1,15 @@
 part of 'fw.dart';
 
 
-abstract class FFController<Watched, State extends Watchable<Watched>>
+abstract class FFController<Watched, FFState extends Watchable<Watched>>
     extends ChangeNotifier {
-  FFController({required State initialState}) : _state = initialState;
+  FFController({required FFState initialState}) : _state = initialState;
 
-  late State _state;
-  State get innerState => _state;
+  late FFState _state;
+  FFState get innerState => _state;
   Watched get state => _state.unwatched;
 
-  void emit(State newState) {
+  void emit(FFState newState) {
     _state = newState;
     notifyListeners();
   }

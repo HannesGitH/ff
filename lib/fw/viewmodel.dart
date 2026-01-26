@@ -1,8 +1,8 @@
 part of 'fw.dart';
 
-abstract class FFViewModel<Watched, State extends Watchable<Watched>> {
-  final State _state;
-  const FFViewModel(State state) : _state = state;
+abstract class FFViewModel<Watched, FFState extends Watchable<Watched>> {
+  final FFState _state;
+  const FFViewModel(FFState state) : _state = state;
   T fromState<T>(BuildContext context, T Function(Watched state) builder) =>
       builder(_state.watched(context));
 
