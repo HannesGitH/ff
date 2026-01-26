@@ -1,7 +1,7 @@
 name: ff
-description: "A new Flutter package project."
+description: "fully fledged, frickin' fast flutter-framework"
 version: 0.0.1
-homepage:
+homepage: https://github.com/HannesGitH/ff
 
 environment:
   sdk: ^3.10.7
