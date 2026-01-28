@@ -1,4 +1,4 @@
-use crate::types::{Class, CopyWithClassType, Field};
+use crate::types::{Class, Field};
 use anyhow::Result;
 use tree_sitter::{Parser, Tree, TreeCursor};
 use tree_sitter_dart::language;
@@ -12,34 +12,116 @@ pub fn get_tree(code: &str) -> Result<Tree> {
     Ok(tree)
 }
 
-fn check_and_handle_class_definition<'a, 'b>(cursor: &'b mut TreeCursor<'a>, prev_node: tree_sitter::Node<'a>, code: &'a str, magic_token: &'a str) ->  Result<Option<(&'a str, tree_sitter::Node<'a>, CopyWithClassType)>> {
+/// Check if a class definition is preceded by a comment containing the magic token.
+/// Returns the class name (with $ prefix) and the class body node if found.
+fn check_and_handle_class_definition<'a, 'b>(
+    cursor: &'b mut TreeCursor<'a>,
+    prev_node: tree_sitter::Node<'a>,
+    code: &'a str,
+    magic_token: &'a str,
+) -> Result<Option<(&'a str, tree_sitter::Node<'a>)>> {
     if cursor.node().kind() == "class_definition" {
         if prev_node.kind() != "comment" {
             return Ok(None);
         };
-        let comment = prev_node.utf8_text(&code.as_bytes()).unwrap();
+        let comment = prev_node.utf8_text(code.as_bytes()).unwrap();
         if !comment.contains(magic_token) {
             return Ok(None);
-        };
-        let copy_with_class_type = if comment.contains("+mk:copyWithMixin") {
-            CopyWithClassType::Mixin
-        } else if comment.contains("+mk:copyWithNullableValue") {
-            CopyWithClassType::ExtensionForcingNullableValue
-        } else if comment.contains("+mk:copyWith") {
-            CopyWithClassType::Extension
-        } else {
-            anyhow::bail!("Unknown copy with class type: {}", comment);
         };
         let class_name = cursor
             .node()
             .child_by_field_name("name")
             .unwrap()
-            .utf8_text(&code.as_bytes())
+            .utf8_text(code.as_bytes())
             .unwrap();
+        // Only process classes that start with $
+        if !class_name.starts_with('$') {
+            return Ok(None);
+        }
         let class_body = cursor.node().child_by_field_name("body").unwrap();
-        return Ok(Some((class_name, class_body, copy_with_class_type)));
+        return Ok(Some((class_name, class_body)));
     }
     Ok(None)
+}
+
+/// Parse a type string and extract map information if it's a Map type.
+fn parse_type_info(type_str: &str) -> (bool, Option<String>, Option<String>) {
+    // Check if it's a Map type
+    if type_str.starts_with("Map<") && type_str.ends_with(">") {
+        let inner = &type_str[4..type_str.len() - 1];
+        // Split by comma, handling nested generics
+        let mut depth = 0;
+        let mut split_pos = None;
+        for (i, c) in inner.chars().enumerate() {
+            match c {
+                '<' => depth += 1,
+                '>' => depth -= 1,
+                ',' if depth == 0 => {
+                    split_pos = Some(i);
+                    break;
+                }
+                _ => {}
+            }
+        }
+        if let Some(pos) = split_pos {
+            let key_type = inner[..pos].trim().to_string();
+            let value_type = inner[pos + 1..].trim().to_string();
+            return (true, Some(key_type), Some(value_type));
+        }
+    }
+    (false, None, None)
+}
+
+/// Extract the full type string from a formal parameter node.
+fn extract_type_from_formal_parameter(node: tree_sitter::Node, code: &str) -> Option<String> {
+    let mut cursor = node.walk();
+    let mut type_parts = Vec::new();
+    let mut is_nullable = false;
+
+    for child in node.named_children(&mut cursor) {
+        match child.kind() {
+            "type_identifier" => {
+                type_parts.push(child.utf8_text(code.as_bytes()).unwrap().to_string());
+            }
+            "type_arguments" => {
+                // Get the full type arguments text
+                let args_text = child.utf8_text(code.as_bytes()).unwrap();
+                if let Some(last) = type_parts.last_mut() {
+                    *last = format!("{}{}", last, args_text);
+                }
+            }
+            "nullable_type" => {
+                // Handle nullable types - extract the inner type
+                is_nullable = true;
+                let inner_text = child.utf8_text(code.as_bytes()).unwrap();
+                // Remove the trailing ? to get the base type
+                let base_type = inner_text.trim_end_matches('?');
+                type_parts.push(base_type.to_string());
+            }
+            _ => {}
+        }
+    }
+
+    if type_parts.is_empty() {
+        return None;
+    }
+
+    let mut result = type_parts.join("");
+    if is_nullable {
+        result.push('?');
+    }
+    Some(result)
+}
+
+/// Extract the parameter name from a formal parameter node.
+fn extract_name_from_formal_parameter(node: tree_sitter::Node, code: &str) -> Option<String> {
+    let mut cursor = node.walk();
+    for child in node.named_children(&mut cursor) {
+        if child.kind() == "identifier" {
+            return Some(child.utf8_text(code.as_bytes()).unwrap().to_string());
+        }
+    }
+    None
 }
 
 pub fn parse(code: &str, magic_token: &str) -> Result<Vec<Class>> {
@@ -50,13 +132,13 @@ pub fn parse(code: &str, magic_token: &str) -> Result<Vec<Class>> {
     // go into program
     cursor.goto_first_child();
 
-    // now get the class definitions
+    // now get the class definitions marked with magic token
     let mut classes_to_parse = Vec::new();
     let mut prev_node = root_node;
     loop {
         let new_class = check_and_handle_class_definition(&mut cursor, prev_node, code, magic_token)?;
         if let Some(new_class) = new_class {
-            classes_to_parse.push(new_class.clone());
+            classes_to_parse.push(new_class);
         }
         prev_node = cursor.node();
         if !cursor.goto_next_sibling() {
@@ -64,63 +146,70 @@ pub fn parse(code: &str, magic_token: &str) -> Result<Vec<Class>> {
         }
     }
 
-    // now get the fields in these classes
+    // now get the fields from constructor parameters in these classes
     let mut classes_with_fields = Vec::new();
-    for (class_name, class_body, copy_with_class_type) in classes_to_parse {
+    for (class_name, class_body) in classes_to_parse {
         let mut fields = Vec::new();
         let mut cursor = class_body.walk();
-        let field_declarations = class_body
-            .named_children(&mut cursor)
-            .filter(|node| node.kind() == "declaration")
-            .collect::<Vec<_>>();
-        for field_declaration in field_declarations {
-            let mut field_name = None;
-            let mut field_type = None;
-            let mut field_is_nullable = false;
-            for child in field_declaration.named_children(&mut cursor) {
-                if child.kind() == "type_identifier" {
-                    field_type = Some(child.utf8_text(&code.as_bytes()).unwrap().to_string());
-                } else if child.kind() == "type_arguments" {
-                    let mut cursor = child.walk();
-                    let mut inner_is_nullable = false;
-                    let mut inner_type = None;
-                    for inner_child in child.named_children(&mut cursor) {
-                        if inner_child.kind() == "type_identifier" {
-                            inner_type = Some(inner_child.utf8_text(&code.as_bytes()).unwrap());
-                        } else if inner_child.kind() == "nullable_type" {
-                            inner_is_nullable = true;
+
+        // Find constructor declarations in the class body
+        for child in class_body.named_children(&mut cursor) {
+            if child.kind() == "declaration" {
+                // Look for constant_constructor_signature or constructor_signature
+                let mut decl_cursor = child.walk();
+                for decl_child in child.named_children(&mut decl_cursor) {
+                    if decl_child.kind() == "constant_constructor_signature"
+                        || decl_child.kind() == "constructor_signature"
+                    {
+                        // Find formal_parameter_list
+                        let mut sig_cursor = decl_child.walk();
+                        for sig_child in decl_child.named_children(&mut sig_cursor) {
+                            if sig_child.kind() == "formal_parameter_list" {
+                                // Look for optional_formal_parameters or named formal parameters
+                                let mut param_list_cursor = sig_child.walk();
+                                for param_container in sig_child.named_children(&mut param_list_cursor) {
+                                    if param_container.kind() == "optional_formal_parameters" {
+                                        // Iterate over formal_parameter children
+                                        let mut opt_cursor = param_container.walk();
+                                        for formal_param in param_container.named_children(&mut opt_cursor) {
+                                            if formal_param.kind() == "formal_parameter" {
+                                                if let (Some(type_str), Some(name_str)) = (
+                                                    extract_type_from_formal_parameter(formal_param, code),
+                                                    extract_name_from_formal_parameter(formal_param, code),
+                                                ) {
+                                                    let is_nullable = type_str.ends_with('?');
+                                                    let base_type = if is_nullable {
+                                                        type_str.trim_end_matches('?').to_string()
+                                                    } else {
+                                                        type_str.clone()
+                                                    };
+                                                    let (is_map, map_key_type, map_value_type) =
+                                                        parse_type_info(&base_type);
+                                                    fields.push(Field {
+                                                        name_str,
+                                                        type_str: base_type,
+                                                        is_nullable,
+                                                        is_map,
+                                                        map_key_type,
+                                                        map_value_type,
+                                                    });
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
-                    if let Some(inner_type) = inner_type {
-                        field_type = Some(format!(
-                            "{}<{}{}>",
-                            field_type.unwrap(),
-                            inner_type,
-                            if inner_is_nullable { "?" } else { "" }
-                        ));
-                    }
-                } else if child.kind() == "nullable_type" {
-                    field_is_nullable = true;
-                } else if child.kind() == "initialized_identifier_list" {
-                    field_name = child
-                        .named_child(0)
-                        .unwrap()
-                        .utf8_text(&code.as_bytes())
-                        .ok();
                 }
             }
-            if let (Some(name_str), Some(type_str)) = (field_name, field_type) {
-                fields.push(Field {
-                    name_str: name_str.to_string(),
-                    type_str,
-                    is_nullable: field_is_nullable,
-                });
-            };
         }
+
+        // Strip the $ prefix from class name for the output
+        let output_class_name = class_name.strip_prefix('$').unwrap_or(class_name);
         classes_with_fields.push(Class {
-            name_str: class_name.to_string(),
+            name_str: output_class_name.to_string(),
             fields,
-            copy_with_class_type,
         });
     }
 
@@ -129,23 +218,32 @@ pub fn parse(code: &str, magic_token: &str) -> Result<Vec<Class>> {
 
 #[cfg(test)]
 mod tests {
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
 
     #[test]
-    fn test_get_tree_in1() {
-        let code = include_str!("../../test/in1.dart");
-        let tree = get_tree(code).unwrap();
-        assert_eq!(
-            tree.root_node().to_sexp(),
-            "(program (comment) (part_directive (uri (string_literal))) (comment) (class_definition name: (identifier) body: (class_body (declaration (final_builtin) (type_identifier) (nullable_type) (initialized_identifier_list (initialized_identifier (identifier)))) (declaration (final_builtin) (type_identifier) (type_arguments (type_identifier) (nullable_type)) (initialized_identifier_list (initialized_identifier (identifier)))) (declaration (final_builtin) (type_identifier) (type_arguments (type_identifier)) (nullable_type) (initialized_identifier_list (initialized_identifier (identifier)))) (declaration (final_builtin) (type_identifier) (type_arguments (type_identifier)) (initialized_identifier_list (initialized_identifier (identifier)))) (declaration (constant_constructor_signature (const_builtin) (identifier) (formal_parameter_list (optional_formal_parameters (formal_parameter (constructor_param (this) (identifier))) (formal_parameter (constructor_param (this) (identifier))) (formal_parameter (constructor_param (this) (identifier))) (formal_parameter (constructor_param (this) (identifier))))))))) (comment) (class_definition name: (identifier) body: (class_body (declaration (final_builtin) (type_identifier) (nullable_type) (initialized_identifier_list (initialized_identifier (identifier)))) (declaration (final_builtin) (type_identifier) (initialized_identifier_list (initialized_identifier (identifier)))) (declaration (constant_constructor_signature (const_builtin) (identifier) (formal_parameter_list (optional_formal_parameters (formal_parameter (constructor_param (this) (identifier))) (formal_parameter (constructor_param (this) (identifier))))))))) (comment) (class_definition name: (identifier) body: (class_body (declaration (final_builtin) (type_identifier) (nullable_type) (initialized_identifier_list (initialized_identifier (identifier)))) (declaration (final_builtin) (type_identifier) (initialized_identifier_list (initialized_identifier (identifier)))) (declaration (constant_constructor_signature (const_builtin) (identifier) (formal_parameter_list (optional_formal_parameters (formal_parameter (constructor_param (this) (identifier))) (formal_parameter (constructor_param (this) (identifier))))))))))"
-        );
-    }
-
-    #[test]
-    fn test_parse_in1() {
-        let code = include_str!("../../test/in1.dart");
-        let classes = parse(code, "+mk:").unwrap();
-        println!("{:?}", classes);
+    fn test_parse_ff_state() {
+        let code = r#"
+// ff-state
+class $TestState {
+  const $TestState({
+    required String name,
+    required int count,
+    required Map<String, bool> flags,
+  });
+}
+"#;
+        let classes = parse(code, "ff-state").unwrap();
+        assert_eq!(classes.len(), 1);
+        assert_eq!(classes[0].name_str, "TestState");
+        assert_eq!(classes[0].fields.len(), 3);
+        assert_eq!(classes[0].fields[0].name_str, "name");
+        assert_eq!(classes[0].fields[0].type_str, "String");
+        assert_eq!(classes[0].fields[1].name_str, "count");
+        assert_eq!(classes[0].fields[1].type_str, "int");
+        assert_eq!(classes[0].fields[2].name_str, "flags");
+        assert_eq!(classes[0].fields[2].type_str, "Map<String, bool>");
+        assert!(classes[0].fields[2].is_map);
+        assert_eq!(classes[0].fields[2].map_key_type, Some("String".to_string()));
+        assert_eq!(classes[0].fields[2].map_value_type, Some("bool".to_string()));
     }
 }

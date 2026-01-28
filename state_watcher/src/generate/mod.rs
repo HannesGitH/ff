@@ -1,4 +1,4 @@
-use crate::types::{Class, CopyWithClassType};
+use crate::types::Class;
 use anyhow::Result;
 use handlebars::Handlebars;
 use serde_json::json;
@@ -12,7 +12,7 @@ impl<'a> Generator<'a> {
         let mut handlebars = Handlebars::new();
         handlebars.register_template_string(
             "template",
-            include_str!("../../templates/main.dart.handlebars"),
+            include_str!("../../templates/state.ff.dart.handlebars"),
         )?;
         Ok(Self { handlebars })
     }
@@ -22,14 +22,13 @@ impl<'a> Generator<'a> {
             "file_name": file_name,
             "classes": classes.iter().map(|c| json!({
                 "class_name": c.name_str,
-                "is_mixin": c.copy_with_class_type == CopyWithClassType::Mixin,
-                "is_nullable_value": c.copy_with_class_type == CopyWithClassType::ExtensionForcingNullableValue,
                 "fields": c.fields.iter().map(|f| json!({
                     "name_str": f.name_str,
                     "type_str": f.type_str,
-                    "type_str_nullable": format!("{}{}", f.type_str, if f.is_nullable { "?" } else { "" }),
-                    "type_str_wrapped_nullable_value": if f.is_nullable { format!("NullableValue<{}?>?", f.type_str) } else { format!("{}?", f.type_str) },
                     "is_nullable": f.is_nullable,
+                    "is_map": f.is_map,
+                    "map_key_type": f.map_key_type,
+                    "map_value_type": f.map_value_type,
                 })).collect::<Vec<_>>(),
             })).collect::<Vec<_>>(),
         }))?;

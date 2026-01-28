@@ -18,7 +18,7 @@ mod generate;
 mod parse;
 mod types;
 
-/// frosted: freezed light
+/// ff-state-watcher: important part of ff, auto generates state classes for you
 /// watches your files and generates code only where and when needed
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -28,11 +28,11 @@ struct Args {
     directory: PathBuf,
 
     /// magic token to identify the files to parse
-    #[arg(short, long, value_name = "TOKEN", default_value = "+mk:")]
+    #[arg(short, long, value_name = "TOKEN", default_value = "ff-state")]
     magic_token: String,
 
     /// file extension to name the generated file
-    #[arg(short, long, value_name = "OUTPUT", default_value = "copy.gen.dart")]
+    #[arg(short, long, value_name = "OUTPUT", default_value = "state.ff.dart")]
     output_file_extension: String,
 
     /// files extensions to watch for changes
