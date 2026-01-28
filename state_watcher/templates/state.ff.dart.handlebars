@@ -15,15 +15,15 @@ typedef _FFMd<T> = FFPropWithMetadata<T>;
 
 abstract interface class {{class_name}}Getters {
   {{#each fields}}
-  {{type_str}} get {{name_str}};
+  {{{type_str}}} get {{name_str}};
   {{/each}}
 
   {{class_name}} loaded({
     {{#each fields}}
     {{#if is_map}}
-    Map<{{map_key_type}}, _FFMd<{{map_value_type}}>>? {{name_str}},
+    Map<{{{map_key_type}}}, _FFMd<{{{map_value_type}}}>>? {{name_str}},
     {{else}}
-    {{type_str}}? {{name_str}},
+    {{{type_str}}}? {{name_str}},
     {{/if}}
     {{/each}}
   });
@@ -38,25 +38,25 @@ abstract interface class {{class_name}}Getters {
 class {{class_name}} implements WatchableProps<{{class_name}}Getters> {
   {{#each fields}}
   {{#if is_map}}
-  final _FFMd<Map<{{map_key_type}}, _FFMd<{{map_value_type}}>>> _{{name_str}};
+  final _FFMd<Map<{{{map_key_type}}}, _FFMd<{{{map_value_type}}}>>> _{{name_str}};
   {{else}}
-  final _FFMd<{{type_str}}> _{{name_str}};
+  final _FFMd<{{{type_str}}}> _{{name_str}};
   {{/if}}
   {{/each}}
 
   {{#each fields}}
   {{#if is_map}}
   //FIXME: this is a stupid workaround to make the map not be shared between the watched and unwatched state
-  final Map<{{map_key_type}}, _FFMd<{{map_value_type}}>> _{{name_str}}Copy;
+  final Map<{{{map_key_type}}}, _FFMd<{{{map_value_type}}}>> _{{name_str}}Copy;
   {{/if}}
   {{/each}}
 
   {{class_name}}.mixed({
     {{#each fields}}
     {{#if is_map}}
-    required _FFMd<Map<{{map_key_type}}, _FFMd<{{map_value_type}}>>> {{name_str}},
+    required _FFMd<Map<{{{map_key_type}}}, _FFMd<{{{map_value_type}}}>>> {{name_str}},
     {{else}}
-    required _FFMd<{{type_str}}> {{name_str}},
+    required _FFMd<{{{type_str}}}> {{name_str}},
     {{/if}}
     {{/each}}
   })  : {{#each fields}}{{#unless @first}},
@@ -66,9 +66,9 @@ class {{class_name}} implements WatchableProps<{{class_name}}Getters> {
   {{class_name}}.loaded({
     {{#each fields}}
     {{#if is_map}}
-    required Map<{{map_key_type}}, _FFMd<{{map_value_type}}>> {{name_str}},
+    required Map<{{{map_key_type}}}, _FFMd<{{{map_value_type}}}>> {{name_str}},
     {{else}}
-    required {{type_str}} {{name_str}},
+    required {{{type_str}}} {{name_str}},
     {{/if}}
     {{/each}}
   })  : {{#each fields}}{{#unless @first}},
@@ -78,9 +78,9 @@ class {{class_name}} implements WatchableProps<{{class_name}}Getters> {
   {{class_name}}.loading({
     {{#each fields}}
     {{#if is_map}}
-    required Map<{{map_key_type}}, _FFMd<{{map_value_type}}>> {{name_str}},
+    required Map<{{{map_key_type}}}, _FFMd<{{{map_value_type}}}>> {{name_str}},
     {{else}}
-    required {{type_str}} {{name_str}},
+    required {{{type_str}}} {{name_str}},
     {{/if}}
     {{/each}}
   })  : {{#each fields}}{{#unless @first}},
@@ -118,10 +118,10 @@ class {{class_name}}Unwatched extends {{class_name}}Getters {
   {{#each fields}}
   @override
   {{#if is_map}}
-  FFDynamicallySizedPropsUnwatched<{{map_value_type}}> get {{name_str}} =>
+  FFDynamicallySizedPropsUnwatched<{{{map_value_type}}}> get {{name_str}} =>
       FFDynamicallySizedPropsUnwatched(inner: state._{{name_str}}.prop);
   {{else}}
-  {{type_str}} get {{name_str}} => state._{{name_str}}.prop;
+  {{{type_str}}} get {{name_str}} => state._{{name_str}}.prop;
   {{/if}}
   {{/each}}
 
@@ -140,9 +140,9 @@ class {{class_name}}Unwatched extends {{class_name}}Getters {
   {{class_name}} loaded({
     {{#each fields}}
     {{#if is_map}}
-    Map<{{map_key_type}}, _FFMd<{{map_value_type}}>>? {{name_str}},
+    Map<{{{map_key_type}}}, _FFMd<{{{map_value_type}}}>>? {{name_str}},
     {{else}}
-    {{type_str}}? {{name_str}},
+    {{{type_str}}}? {{name_str}},
     {{/if}}
     {{/each}}
   }) => {{class_name}}.mixed(
@@ -161,7 +161,7 @@ class {{class_name}}Watched extends {{class_name}}Getters with FFWatchHelper<{{c
   {{#each fields}}
   @override
   {{#if is_map}}
-  {{type_str}} get {{name_str}} {
+  {{{type_str}}} get {{name_str}} {
     final map = read(#{{../class_name}}.{{name_str}}, state._{{name_str}});
     return FFDynamicallySizedProps(
       inner: map,
@@ -171,7 +171,7 @@ class {{class_name}}Watched extends {{class_name}}Getters with FFWatchHelper<{{c
     );
   }
   {{else}}
-  {{type_str}} get {{name_str}} => read(#{{../class_name}}.{{name_str}}, state._{{name_str}});
+  {{{type_str}}} get {{name_str}} => read(#{{../class_name}}.{{name_str}}, state._{{name_str}});
   {{/if}}
   {{/each}}
 
@@ -180,9 +180,9 @@ class {{class_name}}Watched extends {{class_name}}Getters with FFWatchHelper<{{c
   {{class_name}} loaded({
     {{#each fields}}
     {{#if is_map}}
-    Map<{{map_key_type}}, _FFMd<{{map_value_type}}>>? {{name_str}},
+    Map<{{{map_key_type}}}, _FFMd<{{{map_value_type}}}>>? {{name_str}},
     {{else}}
-    {{type_str}}? {{name_str}},
+    {{{type_str}}}? {{name_str}},
     {{/if}}
     {{/each}}
   }) {

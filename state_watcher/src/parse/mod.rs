@@ -246,4 +246,13 @@ class $TestState {
         assert_eq!(classes[0].fields[2].map_key_type, Some("String".to_string()));
         assert_eq!(classes[0].fields[2].map_value_type, Some("bool".to_string()));
     }
+
+    #[test]
+    fn test_parse_real_file() {
+        let code = include_str!("../../test/state_input.dart");
+        let classes = parse(code, "ff-state").unwrap();
+        assert_eq!(classes.len(), 1);
+        assert_eq!(classes[0].name_str, "ExampleState");
+        assert_eq!(classes[0].fields.len(), 4);
+    }
 }

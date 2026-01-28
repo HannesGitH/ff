@@ -53,6 +53,11 @@ fn main() -> Result<()> {
     let file_extensions = args.file_extensions;
     let ignore_patterns = args.ignore_patterns;
 
+    println!("Starting ff-state-watcher...");
+    println!("  Directory: {:?}", directory);
+    println!("  Magic token: {}", magic_token);
+    println!("  Output extension: {}", output_file_extension);
+
     let file_watcher = FileWatcher::new(
         &directory,
         &magic_token,
@@ -60,6 +65,8 @@ fn main() -> Result<()> {
         &file_extensions,
         &ignore_patterns,
     )?;
+
+    println!("Watcher initialized, listening for changes...");
 
     // this will run forever
     file_watcher.run()
@@ -100,6 +107,7 @@ impl<'a> FileWatcher<'a> {
             generator,
             ignore_patterns: ignore_patterns
                 .iter()
+                .filter(|pattern| !pattern.is_empty())
                 .map(|pattern| Regex::new(pattern).unwrap())
                 .collect(),
         })
