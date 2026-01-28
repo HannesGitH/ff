@@ -1,0 +1,260 @@
+// generated file, do not edit
+
+part of '{{file_name}}';
+
+extension _FFLX<T> on _FFMd<T> {
+  _FFMd<T> doLoadingIf(bool loading) => loading ? _FFMd<T>.loading(prop) : this;
+}
+
+typedef _FFMd<T> = FFPropWithMetadata<T>;
+
+{{#each classes}}
+// ============================================================================
+// {{class_name}}
+// ============================================================================
+
+abstract interface class {{class_name}}Getters {
+  {{#each fields}}
+  {{type_str}} get {{name_str}};
+  {{/each}}
+
+  {{class_name}} loaded({
+    {{#each fields}}
+    {{#if is_map}}
+    Map<{{map_key_type}}, _FFMd<{{map_value_type}}>>? {{name_str}},
+    {{else}}
+    {{type_str}}? {{name_str}},
+    {{/if}}
+    {{/each}}
+  });
+
+  {{class_name}} loading({
+    {{#each fields}}
+    bool {{name_str}} = false,
+    {{/each}}
+  });
+}
+
+class {{class_name}} implements WatchableProps<{{class_name}}Getters> {
+  {{#each fields}}
+  {{#if is_map}}
+  final _FFMd<Map<{{map_key_type}}, _FFMd<{{map_value_type}}>>> _{{name_str}};
+  {{else}}
+  final _FFMd<{{type_str}}> _{{name_str}};
+  {{/if}}
+  {{/each}}
+
+  {{#each fields}}
+  {{#if is_map}}
+  //FIXME: this is a stupid workaround to make the map not be shared between the watched and unwatched state
+  final Map<{{map_key_type}}, _FFMd<{{map_value_type}}>> _{{name_str}}Copy;
+  {{/if}}
+  {{/each}}
+
+  {{class_name}}.mixed({
+    {{#each fields}}
+    {{#if is_map}}
+    required _FFMd<Map<{{map_key_type}}, _FFMd<{{map_value_type}}>>> {{name_str}},
+    {{else}}
+    required _FFMd<{{type_str}}> {{name_str}},
+    {{/if}}
+    {{/each}}
+  })  : {{#each fields}}{{#unless @first}},
+        {{/unless}}_{{name_str}} = {{name_str}}{{/each}}{{#each fields}}{{#if is_map}},
+        _{{name_str}}Copy = {...{{name_str}}.prop}{{/if}}{{/each}};
+
+  {{class_name}}.loaded({
+    {{#each fields}}
+    {{#if is_map}}
+    required Map<{{map_key_type}}, _FFMd<{{map_value_type}}>> {{name_str}},
+    {{else}}
+    required {{type_str}} {{name_str}},
+    {{/if}}
+    {{/each}}
+  })  : {{#each fields}}{{#unless @first}},
+        {{/unless}}_{{name_str}} = {{name_str}}.fwLoaded{{/each}}{{#each fields}}{{#if is_map}},
+        _{{name_str}}Copy = {...{{name_str}}}{{/if}}{{/each}};
+
+  {{class_name}}.loading({
+    {{#each fields}}
+    {{#if is_map}}
+    required Map<{{map_key_type}}, _FFMd<{{map_value_type}}>> {{name_str}},
+    {{else}}
+    required {{type_str}} {{name_str}},
+    {{/if}}
+    {{/each}}
+  })  : {{#each fields}}{{#unless @first}},
+        {{/unless}}_{{name_str}} = {{name_str}}.fwLoading{{/each}}{{#each fields}}{{#if is_map}},
+        _{{name_str}}Copy = {...{{name_str}}}{{/if}}{{/each}};
+
+  {{class_name}}Unwatched get unwatched => {{class_name}}Unwatched(state: this);
+
+  {{class_name}}Watched watched(BuildContext context) =>
+      {{class_name}}Watched(state: this, context: context);
+
+  @override
+  Iterable<Symbol> get propNames => [{{#each fields}}{{#unless @first}}, {{/unless}}#{{../class_name}}.{{name_str}}{{/each}}];
+
+  @override
+  FFPropWithMetadata<dynamic> getProp(Symbol propName) => switch (propName) {
+    {{#each fields}}
+    #{{../class_name}}.{{name_str}} => _{{name_str}},
+    {{/each}}
+    {{#each fields}}
+    {{#if is_map}}
+    Symbol(nonSuffix: '{{../class_name}}.{{name_str}}', :final suffix) =>
+      _{{name_str}}Copy[suffix] ?? FFNever().fwLoading,
+    {{/if}}
+    {{/each}}
+    _ => throw UnimplementedError('Unknown prop: $propName'),
+  };
+}
+
+class {{class_name}}Unwatched extends {{class_name}}Getters {
+  {{class_name}}Unwatched({required this.state});
+
+  final {{class_name}} state;
+
+  {{#each fields}}
+  @override
+  {{#if is_map}}
+  FFDynamicallySizedPropsUnwatched<{{map_value_type}}> get {{name_str}} =>
+      FFDynamicallySizedPropsUnwatched(inner: state._{{name_str}}.prop);
+  {{else}}
+  {{type_str}} get {{name_str}} => state._{{name_str}}.prop;
+  {{/if}}
+  {{/each}}
+
+  @override
+  {{class_name}} loading({
+    {{#each fields}}
+    bool {{name_str}} = false,
+    {{/each}}
+  }) => {{class_name}}.mixed(
+    {{#each fields}}
+    {{name_str}}: state._{{name_str}}.doLoadingIf({{name_str}}),
+    {{/each}}
+  );
+
+  @override
+  {{class_name}} loaded({
+    {{#each fields}}
+    {{#if is_map}}
+    Map<{{map_key_type}}, _FFMd<{{map_value_type}}>>? {{name_str}},
+    {{else}}
+    {{type_str}}? {{name_str}},
+    {{/if}}
+    {{/each}}
+  }) => {{class_name}}.mixed(
+    {{#each fields}}
+    {{name_str}}: {{name_str}}?.fwLoaded ?? state._{{name_str}},
+    {{/each}}
+  );
+}
+
+class {{class_name}}Watched extends {{class_name}}Getters with FFWatchHelper<{{class_name}}> {
+  {{class_name}}Watched({required this.state, required this.context});
+
+  final {{class_name}} state;
+  final BuildContext context;
+
+  {{#each fields}}
+  @override
+  {{#if is_map}}
+  {{type_str}} get {{name_str}} {
+    final map = read(#{{../class_name}}.{{name_str}}, state._{{name_str}});
+    return FFDynamicallySizedProps(
+      inner: map,
+      read: (key) => map.containsKey(key)
+          ? read(Symbol('{{../class_name}}.{{name_str}}.$key'), map[key]!)
+          : null,
+    );
+  }
+  {{else}}
+  {{type_str}} get {{name_str}} => read(#{{../class_name}}.{{name_str}}, state._{{name_str}});
+  {{/if}}
+  {{/each}}
+
+  @override
+  /// DO NOT USE this from watched state, use unwatched state instead
+  {{class_name}} loaded({
+    {{#each fields}}
+    {{#if is_map}}
+    Map<{{map_key_type}}, _FFMd<{{map_value_type}}>>? {{name_str}},
+    {{else}}
+    {{type_str}}? {{name_str}},
+    {{/if}}
+    {{/each}}
+  }) {
+    debugPrint('calling changed from watched state, this shall not be done');
+    return state.unwatched.loaded({{#each fields}}{{#unless @first}}, {{/unless}}{{name_str}}: {{name_str}}{{/each}});
+  }
+
+  @override
+  /// DO NOT USE this from watched state, use unwatched state instead
+  {{class_name}} loading({
+    {{#each fields}}
+    bool {{name_str}} = false,
+    {{/each}}
+  }) {
+    debugPrint('calling loading from watched state, this shall not be done');
+    return state.unwatched.loading({{#each fields}}{{#unless @first}}, {{/unless}}{{name_str}}: {{name_str}}{{/each}});
+  }
+}
+
+// SECTION typedef helpers
+
+typedef {{class_name}}Widget<
+  Controller extends FFController<{{class_name}}Getters, {{class_name}}>,
+  ViewModel extends FFViewModel<{{class_name}}Getters, {{class_name}}>
+> = FFWidget<{{class_name}}Getters, {{class_name}}, ViewModel, Controller>;
+
+typedef {{class_name}}View<
+  Controller extends FFController<{{class_name}}Getters, {{class_name}}>,
+  ViewModel extends FFViewModel<{{class_name}}Getters, {{class_name}}>
+> = FFView<{{class_name}}Getters, {{class_name}}, ViewModel, Controller>;
+
+typedef {{class_name}}Presenter<
+  Controller extends FFController<{{class_name}}Getters, {{class_name}}>,
+  ViewModel extends FFViewModel<{{class_name}}Getters, {{class_name}}>
+> = FFPresenter<{{class_name}}Getters, {{class_name}}, ViewModel, Controller>;
+
+typedef {{class_name}}Builder<
+  Controller extends FFController<{{class_name}}Getters, {{class_name}}>,
+  ViewModel extends FFViewModel<{{class_name}}Getters, {{class_name}}>
+> = FFBuilder<{{class_name}}Getters, {{class_name}}, ViewModel, Controller>;
+
+// SECTION features
+
+typedef {{class_name}}Feature<
+  Controller extends FFController<{{class_name}}Getters, {{class_name}}>,
+  ViewModel extends FFViewModel<{{class_name}}Getters, {{class_name}}>
+> = FFFeature<{{class_name}}Getters, {{class_name}}, ViewModel, Controller>;
+
+typedef {{class_name}}ReusableFeature<
+  Controller extends FFController<{{class_name}}Getters, {{class_name}}>,
+  ViewModel extends FFViewModel<{{class_name}}Getters, {{class_name}}>
+> = FFReusableFeature<{{class_name}}Getters, {{class_name}}, ViewModel, Controller>;
+
+typedef {{class_name}}ReusableMultiFeature<
+  Param,
+  Controller extends FFController<{{class_name}}Getters, {{class_name}}>,
+  ViewModel extends FFViewModel<{{class_name}}Getters, {{class_name}}>
+> =
+    FFReusableMultiFeature<
+      Param,
+      {{class_name}}Getters,
+      {{class_name}},
+      ViewModel,
+      Controller
+    >;
+
+typedef {{class_name}}SimpleFeature<
+  Controller extends FFController<{{class_name}}Getters, {{class_name}}>,
+  ViewModel extends FFViewModel<{{class_name}}Getters, {{class_name}}>
+> = FFSimpleFeature<{{class_name}}Getters, {{class_name}}, ViewModel, Controller>;
+// END SECTION features
+
+// END SECTION typedef helpers
+
+{{/each}}
