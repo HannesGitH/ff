@@ -1,4 +1,4 @@
-part of 'ff.dart';
+part of 'fw.dart';
 
 abstract class FFViewModel<Watched, FFState extends Watchable<Watched>> {
   final FFState _state;

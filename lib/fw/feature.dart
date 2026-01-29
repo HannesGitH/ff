@@ -1,4 +1,4 @@
-part of 'ff.dart';
+part of 'fw.dart';
 
 abstract class FFFeature<
   Watched,
