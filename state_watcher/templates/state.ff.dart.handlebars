@@ -72,7 +72,7 @@ class {{class_name}} implements WatchableProps<{{class_name}}Getters> {
     {{/if}}
     {{/each}}
   })  : {{#each fields}}{{#unless @first}},
-        {{/unless}}_{{name_str}} = {{name_str}}.fwLoaded{{/each}}{{#each fields}}{{#if is_map}},
+        {{/unless}}_{{name_str}} = {{name_str}}.ffLoaded{{/each}}{{#each fields}}{{#if is_map}},
         _{{name_str}}Copy = {...{{name_str}}}{{/if}}{{/each}};
 
   {{class_name}}.loading({
@@ -84,7 +84,7 @@ class {{class_name}} implements WatchableProps<{{class_name}}Getters> {
     {{/if}}
     {{/each}}
   })  : {{#each fields}}{{#unless @first}},
-        {{/unless}}_{{name_str}} = {{name_str}}.fwLoading{{/each}}{{#each fields}}{{#if is_map}},
+        {{/unless}}_{{name_str}} = {{name_str}}.ffLoading{{/each}}{{#each fields}}{{#if is_map}},
         _{{name_str}}Copy = {...{{name_str}}}{{/if}}{{/each}};
 
   {{class_name}}Unwatched get unwatched => {{class_name}}Unwatched(state: this);
@@ -103,7 +103,7 @@ class {{class_name}} implements WatchableProps<{{class_name}}Getters> {
     {{#each fields}}
     {{#if is_map}}
     Symbol(nonSuffix: '{{../class_name}}.{{name_str}}', :final suffix) =>
-      _{{name_str}}Copy[suffix] ?? FFNever().fwLoading,
+      _{{name_str}}Copy[suffix] ?? FFNever().ffLoading,
     {{/if}}
     {{/each}}
     _ => throw UnimplementedError('Unknown prop: $propName'),
@@ -147,7 +147,7 @@ class {{class_name}}Unwatched extends {{class_name}}Getters {
     {{/each}}
   }) => {{class_name}}.mixed(
     {{#each fields}}
-    {{name_str}}: {{name_str}}?.fwLoaded ?? state._{{name_str}},
+    {{name_str}}: {{name_str}}?.ffLoaded ?? state._{{name_str}},
     {{/each}}
   );
 }

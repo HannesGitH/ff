@@ -32,7 +32,7 @@ struct Args {
     magic_token: String,
 
     /// file extension to name the generated file
-    #[arg(short, long, value_name = "OUTPUT", default_value = "state.ff.dart")]
+    #[arg(short, long, value_name = "OUTPUT", default_value = "ff.dart")]
     output_file_extension: String,
 
     /// files extensions to watch for changes

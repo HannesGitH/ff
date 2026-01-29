@@ -58,10 +58,10 @@ class ExampleState implements WatchableProps<ExampleStateGetters> {
     required int count,
     required bool isActive,
     required Map<String, _FFMd<bool>> flags,
-  })  : _name = name.fwLoaded,
-        _count = count.fwLoaded,
-        _isActive = isActive.fwLoaded,
-        _flags = flags.fwLoaded,
+  })  : _name = name.ffLoaded,
+        _count = count.ffLoaded,
+        _isActive = isActive.ffLoaded,
+        _flags = flags.ffLoaded,
         _flagsCopy = {...flags};
 
   ExampleState.loading({
@@ -69,10 +69,10 @@ class ExampleState implements WatchableProps<ExampleStateGetters> {
     required int count,
     required bool isActive,
     required Map<String, _FFMd<bool>> flags,
-  })  : _name = name.fwLoading,
-        _count = count.fwLoading,
-        _isActive = isActive.fwLoading,
-        _flags = flags.fwLoading,
+  })  : _name = name.ffLoading,
+        _count = count.ffLoading,
+        _isActive = isActive.ffLoading,
+        _flags = flags.ffLoading,
         _flagsCopy = {...flags};
 
   ExampleStateUnwatched get unwatched => ExampleStateUnwatched(state: this);
@@ -90,7 +90,7 @@ class ExampleState implements WatchableProps<ExampleStateGetters> {
     #ExampleState.isActive => _isActive,
     #ExampleState.flags => _flags,
     Symbol(nonSuffix: 'ExampleState.flags', :final suffix) =>
-      _flagsCopy[suffix] ?? FFNever().fwLoading,
+      _flagsCopy[suffix] ?? FFNever().ffLoading,
     _ => throw UnimplementedError('Unknown prop: $propName'),
   };
 }
@@ -130,10 +130,10 @@ class ExampleStateUnwatched extends ExampleStateGetters {
     bool? isActive,
     Map<String, _FFMd<bool>>? flags,
   }) => ExampleState.mixed(
-    name: name?.fwLoaded ?? state._name,
-    count: count?.fwLoaded ?? state._count,
-    isActive: isActive?.fwLoaded ?? state._isActive,
-    flags: flags?.fwLoaded ?? state._flags,
+    name: name?.ffLoaded ?? state._name,
+    count: count?.ffLoaded ?? state._count,
+    isActive: isActive?.ffLoaded ?? state._isActive,
+    flags: flags?.ffLoaded ?? state._flags,
   );
 }
 

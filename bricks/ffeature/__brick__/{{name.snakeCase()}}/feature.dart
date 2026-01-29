@@ -2,12 +2,12 @@
 
 import 'package:ff/fw.dart';
 
-import 'cubit.dart';
+import 'controller.dart';
 import 'model.dart';
 import 'state.dart';
 import 'views/main.dart';
 
-// if the cubit should be regenerated for every entry, use {{name.pascalCase()}}SimpleFeature
+// if the controller should be regenerated for every entry, use {{name.pascalCase()}}SimpleFeature
 // if you plan to have the entry depend on some data, like e.g. showing a specific user from a user-id, use {{name.pascalCase()}}ReusableMultiFeature
 class {{name.pascalCase()}}Feature extends {{name.pascalCase()}}ReusableFeature_ {
   @override

@@ -23,7 +23,7 @@ abstract class FFReusableFeature<
 
   Controller? _controller;
 
-  // replaces global cubits, as the features will be held by the app
+  // replaces global controllers, as the features will be held by the app
   Controller get controller => _controller ??= mkController();
 
   void shutdown() {

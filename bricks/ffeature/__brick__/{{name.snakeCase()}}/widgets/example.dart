@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:ff/fw.dart';
 
-import '../cubit.dart';
+import '../controller.dart';
 import '../model.dart';
 
 class {{name.pascalCase()}}ExampleWidget extends {{name.pascalCase()}}Widget_ {
