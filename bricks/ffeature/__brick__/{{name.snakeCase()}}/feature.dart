@@ -1,10 +1,12 @@
 //! if this is not supposed to be a app-available feature, you can remove this file
 
 import 'package:ff/ff.dart';
+import 'package:flutter/widgets.dart';
 
 import 'controller.dart';
 import 'model.dart';
 import 'state.dart';
+import 'types.dart';
 import 'views/main.dart';
 
 // if the controller should be regenerated for every entry, use {{name.pascalCase()}}SimpleFeature
@@ -12,7 +14,7 @@ import 'views/main.dart';
 class {{name.pascalCase()}}Feature extends {{name.pascalCase()}}ReusableFeature_ {
   @override
   {{name.pascalCase()}}Controller mkController() =>
-      {{name.pascalCase()}}Controller(initialState: {{name.pascalCase()}}State.loading());
+      {{name.pascalCase()}}Controller(initialState: ${{name.pascalCase()}}State.initial());
 
   @override
   {{name.pascalCase()}}Model mkViewModel({{name.pascalCase()}}State state) => {{name.pascalCase()}}Model(state);

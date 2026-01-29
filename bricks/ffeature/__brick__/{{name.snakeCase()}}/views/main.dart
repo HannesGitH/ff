@@ -1,5 +1,6 @@
-import 'package:ff/ff.dart';
+import 'package:flutter/material.dart';
 
+import '../types.dart';
 import '../widgets/example.dart';
 
 class {{name.pascalCase()}}View extends {{name.pascalCase()}}View_ {

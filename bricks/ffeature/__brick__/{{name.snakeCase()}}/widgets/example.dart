@@ -1,10 +1,10 @@
 // try to put as many widgets as possible instead of using giant ones
 
 import 'package:flutter/material.dart';
-import 'package:ff/ff.dart';
 
 import '../controller.dart';
 import '../model.dart';
+import '../types.dart';
 
 class {{name.pascalCase()}}ExampleWidget extends {{name.pascalCase()}}Widget_ {
   const {{name.pascalCase()}}ExampleWidget({super.key});
