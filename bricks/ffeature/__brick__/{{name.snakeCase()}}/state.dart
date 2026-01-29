@@ -1,4 +1,4 @@
-import 'package:ff/fw.dart';
+import 'package:ff/ff.dart';
 
 part 'state.ff.dart';
 

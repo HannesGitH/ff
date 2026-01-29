@@ -1,4 +1,4 @@
-part of 'fw.dart';
+part of 'ff.dart';
 
 enum FFPresentationType { route, dialog, bottomSheet }
 

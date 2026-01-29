@@ -1,4 +1,4 @@
-part of 'fw.dart';
+part of 'ff.dart';
 
 
 abstract class FFController<Watched, FFState extends Watchable<Watched>>

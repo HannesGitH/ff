@@ -1,4 +1,4 @@
-part of 'fw.dart';
+part of 'ff.dart';
 
 class FFProvider<FFState extends GetProps> extends InheritedModel<Symbol> {
   const FFProvider({super.key, required super.child, required this.state});

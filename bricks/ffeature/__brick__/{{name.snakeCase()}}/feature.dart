@@ -1,6 +1,6 @@
 //! if this is not supposed to be a app-available feature, you can remove this file
 
-import 'package:ff/fw.dart';
+import 'package:ff/ff.dart';
 
 import 'controller.dart';
 import 'model.dart';
