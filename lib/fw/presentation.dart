@@ -47,7 +47,7 @@ class FFPresenter<
   final bool shallDisposeController;
 
   Widget buildWidget(
-    FFFidget<Watched, FFState, ViewModel, Controller> child,
+    FFWidget<Watched, FFState, ViewModel, Controller> child,
   ) => buildWidgetUnsafe(child);
 
   Future<void> show({
@@ -89,14 +89,14 @@ class FFPresenter<
   }
 }
 
-abstract class FFFidget<
+abstract class FFWidget<
   Watched,
   FFState extends WatchableProps<Watched>,
   ViewModel extends FFViewModel<Watched, FFState>,
   Controller extends FFController<Watched, FFState>
 >
     extends StatelessWidget {
-  const FFFidget({super.key});
+  const FFWidget({super.key});
 
   Widget buildWidget(
     BuildContext context,
@@ -160,7 +160,7 @@ abstract class FFView<
   ViewModel extends FFViewModel<Watched, FFState>,
   Controller extends FFController<Watched, FFState>
 >
-    extends FFFidget<Watched, FFState, ViewModel, Controller> {
+    extends FFWidget<Watched, FFState, ViewModel, Controller> {
   const FFView({super.key});
 
   /// consider overriding [buildBody] if you need custom slivers
@@ -276,7 +276,7 @@ class FFBuilder<
   ViewModel extends FFViewModel<Watched, FFState>,
   Controller extends FFController<Watched, FFState>
 >
-    extends FFFidget<Watched, FFState, ViewModel, Controller> {
+    extends FFWidget<Watched, FFState, ViewModel, Controller> {
   const FFBuilder({super.key, required this.builder});
 
   final Widget Function(
