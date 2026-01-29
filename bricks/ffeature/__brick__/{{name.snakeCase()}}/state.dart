@@ -1,5 +1,4 @@
 import 'package:ff/ff.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 part 'state.ff.dart';
