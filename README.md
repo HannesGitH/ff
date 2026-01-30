@@ -65,6 +65,10 @@ file_extensions:
 ignore_patterns:
   - ".*\\.g\\.dart$"
   - ".*\\.freezed\\.dart$"
+
+# Custom view class for typedef helpers (optional, default: "FFView")
+# Furnish this to force generated views to extend your own FFView subclass
+# view_override: MyFancyFFView
 ```
 
 For VS Code folks, furnish your `.vscode/tasks.json` file with:

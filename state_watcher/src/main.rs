@@ -50,6 +50,10 @@ struct Config {
     /// file patterns to ignore
     #[serde(default)]
     ignore_patterns: Vec<String>,
+
+    /// custom view class to extend instead of FFView in typedef helpers
+    #[serde(default)]
+    view_override: Option<String>,
 }
 
 fn default_magic_token() -> String {
@@ -91,6 +95,9 @@ fn main() -> Result<()> {
     println!("  Directory: {:?}", directory);
     println!("  Magic token: {}", config.magic_token);
     println!("  Output extension: {}", config.output_file_extension);
+    if let Some(ref view) = config.view_override {
+        println!("  View override: {}", view);
+    }
 
     let file_watcher = FileWatcher::new(
         &directory,
@@ -98,6 +105,7 @@ fn main() -> Result<()> {
         &config.output_file_extension,
         &config.file_extensions,
         &config.ignore_patterns,
+        config.view_override,
     )?;
 
     println!("Watcher initialized, listening for changes...");
@@ -116,6 +124,7 @@ struct FileWatcher<'a> {
     allowed_watch_extensions: Vec<String>,
     generator: Generator<'a>,
     ignore_patterns: Vec<Regex>,
+    view_override: Option<String>,
 }
 
 impl<'a> FileWatcher<'a> {
@@ -125,6 +134,7 @@ impl<'a> FileWatcher<'a> {
         output_file_extension: &str,
         file_extensions: &[String],
         ignore_patterns: &[String],
+        view_override: Option<String>,
     ) -> Result<Self> {
         let (tx, rx) = mpsc::channel::<notify::Result<Event>>();
         let mut watcher = notify::recommended_watcher(tx)?;
@@ -144,6 +154,7 @@ impl<'a> FileWatcher<'a> {
                 .filter(|pattern| !pattern.is_empty())
                 .map(|pattern| Regex::new(pattern).unwrap())
                 .collect(),
+            view_override,
         })
     }
 
@@ -215,9 +226,11 @@ impl<'a> FileWatcher<'a> {
         }
         println!("found {} classes in file: {:?}", classes.len(), path);
 
-        let generated = self
-            .generator
-            .generate(&classes, path.file_name().unwrap().to_str().unwrap())?;
+        let generated = self.generator.generate(
+            &classes,
+            path.file_name().unwrap().to_str().unwrap(),
+            self.view_override.as_deref(),
+        )?;
         let output_path = path.with_extension(&self.output_file_extension);
         let mut file = File::create(output_path)?;
         file.write_all(generated.as_bytes())?;

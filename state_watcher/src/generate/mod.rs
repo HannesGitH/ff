@@ -17,9 +17,16 @@ impl<'a> Generator<'a> {
         Ok(Self { handlebars })
     }
 
-    pub fn generate(&self, classes: &[Class], file_name: &str) -> Result<String> {
+    pub fn generate(
+        &self,
+        classes: &[Class],
+        file_name: &str,
+        view_override: Option<&str>,
+    ) -> Result<String> {
+        let view_base = view_override.unwrap_or("FFView");
         let rendered = self.handlebars.render("template", &json!({
             "file_name": file_name,
+            "view_base": view_base,
             "classes": classes.iter().map(|c| json!({
                 "class_name": c.name_str,
                 "fields": c.fields.iter().map(|f| json!({

@@ -18,3 +18,8 @@ file_extensions:
 ignore_patterns:
   - ".*\\.g\\.dart$"
   - ".*\\.freezed\\.dart$"
+
+# Custom view class to extend instead of FFView (optional)
+# view_override: MyCustomFFView
+
+view_override: "MyUiView"

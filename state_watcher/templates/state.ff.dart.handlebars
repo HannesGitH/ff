@@ -212,7 +212,7 @@ typedef {{class_name}}Widget<
 typedef {{class_name}}View<
   Controller extends FFController<{{class_name}}Getters, {{class_name}}>,
   ViewModel extends FFViewModel<{{class_name}}Getters, {{class_name}}>
-> = FFView<{{class_name}}Getters, {{class_name}}, ViewModel, Controller>;
+> = {{../view_base}}<{{class_name}}Getters, {{class_name}}, ViewModel, Controller>;
 
 typedef {{class_name}}Presenter<
   Controller extends FFController<{{class_name}}Getters, {{class_name}}>,
