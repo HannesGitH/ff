@@ -1,10 +1,11 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use clap::Parser;
 use notify::{
     Event, EventKind, RecursiveMode, Watcher,
     event::{CreateKind, DataChange, ModifyKind},
 };
 use regex::Regex;
+use serde::Deserialize;
 use std::path::PathBuf;
 use std::{
     fs::File,
@@ -23,47 +24,80 @@ mod types;
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
-    /// directory in which we will watch for changes
-    #[arg(short, long, value_name = "DIR")]
+    /// path to the ff.yaml configuration file
+    #[arg(value_name = "CONFIG")]
+    config: PathBuf,
+}
+
+/// Configuration loaded from ff.yaml
+#[derive(Debug, Deserialize)]
+struct Config {
+    /// directory in which we will watch for changes (relative to config file)
     directory: PathBuf,
 
     /// magic token to identify the files to parse
-    #[arg(short, long, value_name = "TOKEN", default_value = "ff-state")]
+    #[serde(default = "default_magic_token")]
     magic_token: String,
 
     /// file extension to name the generated file
-    #[arg(short, long, value_name = "OUTPUT", default_value = "ff.dart")]
+    #[serde(default = "default_output_extension")]
     output_file_extension: String,
 
     /// files extensions to watch for changes
-    #[arg(short, long, value_name = "EXTENSIONS", default_value = "dart")]
+    #[serde(default = "default_file_extensions")]
     file_extensions: Vec<String>,
 
     /// file patterns to ignore
-    #[arg(short, long, value_name = "PATTERNS", default_value = "")]
+    #[serde(default)]
     ignore_patterns: Vec<String>,
+}
+
+fn default_magic_token() -> String {
+    "ff-state".to_string()
+}
+
+fn default_output_extension() -> String {
+    "ff.dart".to_string()
+}
+
+fn default_file_extensions() -> Vec<String> {
+    vec!["dart".to_string()]
 }
 
 fn main() -> Result<()> {
     let args = Args::parse();
 
-    let directory = args.directory;
-    let magic_token = args.magic_token;
-    let output_file_extension = args.output_file_extension;
-    let file_extensions = args.file_extensions;
-    let ignore_patterns = args.ignore_patterns;
+    // Read and parse the config file
+    let config_path = args.config.canonicalize().context("Config file not found")?;
+    let config_dir = config_path
+        .parent()
+        .ok_or_else(|| anyhow::anyhow!("Cannot determine config file directory"))?;
+
+    let config_file = File::open(&config_path)
+        .with_context(|| format!("Failed to open config file: {:?}", config_path))?;
+    let config: Config = serde_yaml::from_reader(config_file)
+        .with_context(|| format!("Failed to parse config file: {:?}", config_path))?;
+
+    // Resolve directory relative to config file location
+    let directory = if config.directory.is_absolute() {
+        config.directory
+    } else {
+        config_dir.join(&config.directory).canonicalize()
+            .with_context(|| format!("Directory not found: {:?}", config.directory))?
+    };
 
     println!("Starting ff-state-watcher...");
+    println!("  Config: {:?}", config_path);
     println!("  Directory: {:?}", directory);
-    println!("  Magic token: {}", magic_token);
-    println!("  Output extension: {}", output_file_extension);
+    println!("  Magic token: {}", config.magic_token);
+    println!("  Output extension: {}", config.output_file_extension);
 
     let file_watcher = FileWatcher::new(
         &directory,
-        &magic_token,
-        &output_file_extension,
-        &file_extensions,
-        &ignore_patterns,
+        &config.magic_token,
+        &config.output_file_extension,
+        &config.file_extensions,
+        &config.ignore_patterns,
     )?;
 
     println!("Watcher initialized, listening for changes...");

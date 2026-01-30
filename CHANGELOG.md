@@ -1,5 +1,9 @@
 # changes
 
+## 0.1.1
+
+- rely on ff.yaml instead of cli args
+
 ## 0.1.0
 
 - first working version

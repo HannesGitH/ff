@@ -42,7 +42,32 @@ bricks:
 
 ### 3. Fire Up the FF State Watcher
 
-FF's file watcher fabricates state files for you. For VS Code folks, furnish your `.vscode/tasks.json` file with:
+FF's file watcher fabricates state files for you. First, forge an `ff.yaml` file in your project folder:
+
+```yaml
+# ff.yaml — FF configuration file
+# Filepaths are figured relative to this file's folder
+
+# Folder to watch for fluctuations (required)
+directory: lib
+
+# Flag to find in files (optional, default: "ff-state")
+magic_token: ff-state
+
+# File suffix for fabricated files (optional, default: "ff.dart")
+output_file_extension: ff.dart
+
+# File formats to follow (optional, default: ["dart"])
+file_extensions:
+  - dart
+
+# Filename patterns to filter out (optional)
+ignore_patterns:
+  - ".*\\.g\\.dart$"
+  - ".*\\.freezed\\.dart$"
+```
+
+For VS Code folks, furnish your `.vscode/tasks.json` file with:
 
 ```json
 {
@@ -51,7 +76,7 @@ FF's file watcher fabricates state files for you. For VS Code folks, furnish you
     {
       "label": "Start ff generation",
       "type": "shell",
-      "command": "nix run github:HannesGitH/ff -- --directory .",
+      "command": "nix run github:HannesGitH/ff -- ff.yaml",
       "presentation": {
         "reveal": "never",
         "panel": "new"
@@ -68,7 +93,7 @@ FF's file watcher fabricates state files for you. For VS Code folks, furnish you
 For folks favoring manual firing, just flash this in your terminal:
 
 ```bash
-nix run github:HannesGitH/ff -- --directory .
+nix run github:HannesGitH/ff -- ff.yaml
 ```
 
 ---
@@ -151,12 +176,13 @@ FF's foremost forte is fine-grained field-level watching. Features function as f
 
 ### FF State Watcher (Filesystem Watcher)
 
-FF features a Rust-forged filesystem watcher for fabricating state files:
+FF features a Rust-forged filesystem watcher for fabricating state files. Furnish an `ff.yaml` file to configure:
 
-1. **File Monitoring** — Faithfully follows `.dart` files for fluctuations
+1. **File Monitoring** — Faithfully follows `.dart` files for fluctuations in the folder you configure
 2. **Flag Finding** — Finds the `ff-state` flag in file contents
 3. **Fabrication** — Forges `*.ff.dart` files from Handlebars templates
 4. **Fast Feedback** — File changes fire fresh generation in a flash
+5. **Filtering** — Flexibly filter out files via regex patterns in `ff.yaml`
 
 ### Feature Flavors
 
@@ -207,8 +233,9 @@ FF furnishes four feature flavors for flexibility:
 ### FF State File Fails to Form?
 
 1. First, verify the `ff-state` flag features in your file
-2. Firmly check the ff-watcher is functioning (`nix run github:HannesGitH/ff -- --directory .`)
-3. Fret not about formatting — fix syntax, and FF will forge fresh files
+2. Firmly check your `ff.yaml` file is furnished with the fitting `directory` path
+3. Firmly check the ff-watcher is functioning (`nix run github:HannesGitH/ff -- ff.yaml`)
+4. Fret not about formatting — fix syntax, and FF will forge fresh files
 
 ### Fields Failing to Fire Rebuilds?
 

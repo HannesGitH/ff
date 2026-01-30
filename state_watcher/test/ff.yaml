@@ -1,0 +1,20 @@
+# ff-state-watcher configuration
+# All paths are relative to this file's location
+
+# Directory to watch for changes (required)
+directory: .
+
+# Magic token to identify files to parse (optional, default: "ff-state")
+magic_token: ff-state
+
+# Output file extension (optional, default: "ff.dart")
+output_file_extension: state.ff.dart
+
+# File extensions to watch (optional, default: ["dart"])
+file_extensions:
+  - dart
+
+# Regex patterns to ignore (optional, default: [])
+ignore_patterns:
+  - ".*\\.g\\.dart$"
+  - ".*\\.freezed\\.dart$"

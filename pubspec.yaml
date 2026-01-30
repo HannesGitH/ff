@@ -1,6 +1,6 @@
 name: ff
-description: "fully fledged, frickin' fast flutter-framework"
-version: 0.1.0
+description: "fully fledged, frickin' fast flutter-framework. It relies heavily on code-gen although not using dart build-runner but its own, native file watcher."
+version: 0.1.1
 homepage: https://github.com/HannesGitH/ff
 
 environment:
