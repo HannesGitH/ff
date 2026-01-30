@@ -127,6 +127,7 @@ class _FFBuilderState<
     super.initState();
     _state = widget.controller.innerState;
     widget.controller.addListener(_onStateChanged);
+    widget.controller.context = context;
   }
 
   @override

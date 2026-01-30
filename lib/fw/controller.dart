@@ -13,4 +13,6 @@ abstract class FFController<Watched, FFState extends Watchable<Watched>>
     _state = newState;
     notifyListeners();
   }
+
+  BuildContext? context;
 }
