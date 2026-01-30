@@ -14,5 +14,8 @@ abstract class FFController<Watched, FFState extends Watchable<Watched>>
     notifyListeners();
   }
 
-  BuildContext? context;
+  /// this context is only usable (set) after this controller has been attached to at least one widget
+  /// it always points to the context of the newest widget the controller is used in
+  /// if you want to access the context before the controller is attached to a widget, DONT
+  late BuildContext context;
 }
